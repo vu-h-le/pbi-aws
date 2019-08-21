@@ -1,0 +1,548 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: ''
+
+Parameters: 
+  MyIPAddress:
+    Description: Allow inbound traffic to the Jump Box from this CIDR range.
+    Type: String
+    Default: '0.0.0.0/0'  
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid CIDR range of the form x.x.x.x/x.
+  AmazonLinuxImageID:
+    Description: ID of Amazon Linux AMI that will be used for the Data Generator EC2 instance
+    Type: String
+    Default: 'ami-035b3c7efe6d061d5'
+  WindowsServerImageID:
+    Description: ID of Windows Serever AMI that will be used for the Jumpbox and Data Gateway EC2 instances
+    Type: String
+    Default: 'ami-04ca2d0801450d495'
+  DataGeneratorInstanceType:
+    Description: EC2 instance type for data generator.
+    Type: String
+    Default: t2.xlarge
+  JumpBoxInstanceType:
+    Description: EC2 instance type for jump box.
+    Type: String
+    Default: t2.medium
+  DataGatewayInstanceType:
+    Description: EC2 instance type for data gateway.
+    Type: String
+    Default: t2.medium
+  EC2KeyPair:
+    Description: Key pair used to connect to EC2 instances
+    Type: String
+    Default: 'MyUSEast1KeyPair'
+  RedshiftDatabaseName:
+    Description: The name of the first database to be created when the cluster is
+      created
+    Type: String
+    Default: dev
+    AllowedPattern: "([a-z]|[0-9])+"
+  RedshiftClusterType:
+    Description: The type of cluster
+    Type: String
+    Default: multi-node
+    AllowedValues:
+    - single-node
+    - multi-node
+  RedshiftNumberOfNodes:
+    Description: The number of compute nodes in the cluster. For multi-node clusters,
+      the NumberOfNodes parameter must be greater than 1
+    Type: Number
+    Default: '2'
+  RedshiftNodeType:
+    Description: The type of node to be provisioned.  Only allowing nodes that can be accessed with Query Editor
+    Type: String
+    Default: dc2.large
+    AllowedValues:
+    - dc1.8xlarge
+    - dc2.large
+    - dc2.8xlarge
+    - ds2.8xlarge
+
+  RedshiftMasterUsername:
+    Description: The user name that is associated with the master user account for the cluster that is being created
+    Type: String
+    Default: awsuser
+    AllowedPattern: "([a-z])([a-z]|[0-9])*"
+  RedshiftMasterUserPassword:
+    Description: The password that is associated with the master user account for the cluster that is being created.
+    Type: String
+    NoEcho: 'true'
+    MinLength: 8
+    MaxLength: 64
+    AllowedPattern: "^[a-zA-Z0-9]*$"
+  RedshiftPortNumber:
+    Description: The port number on which the cluster accepts incoming connections.
+    Type: Number
+    Default: '5439'
+
+Conditions:
+  IsMultiNodeCluster:
+    Fn::Equals:
+    - !Ref RedshiftClusterType
+    - multi-node
+
+Resources:
+  ProgrammaticUser:
+    Type: AWS::IAM::User
+
+  ProgrammaticUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref ProgrammaticUser
+  
+  EC2AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+  RedshiftAccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - redshift.amazonaws.com
+            Action:
+              - sts:AssumeRole
+  
+  AccessPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: AccessPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - 
+            Effect: Allow
+            Action: 
+              - athena:BatchGetQueryExecution
+              - athena:CancelQueryExecution
+              - athena:GetCatalogs
+              - athena:GetExecutionEngine
+              - athena:GetExecutionEngines
+              - athena:GetNamespace
+              - athena:GetNamespaces
+              - athena:GetQueryExecution
+              - athena:GetQueryExecutions
+              - athena:GetQueryResults
+              - athena:GetQueryResultsStream
+              - athena:GetTable
+              - athena:GetTables
+              - athena:ListQueryExecutions
+              - athena:RunQuery
+              - athena:StartQueryExecution
+              - athena:StopQueryExecution
+            Resource: '*'
+          -
+            Effect: Allow
+            Action:
+              - glue:CreateDatabase
+              - glue:DeleteDatabase
+              - glue:GetDatabase
+              - glue:GetDatabases
+              - glue:UpdateDatabase
+              - glue:CreateTable
+              - glue:DeleteTable
+              - glue:BatchDeleteTable
+              - glue:UpdateTable
+              - glue:GetTable
+              - glue:GetTables
+              - glue:BatchCreatePartition
+              - glue:CreatePartition
+              - glue:DeletePartition
+              - glue:BatchDeletePartition
+              - glue:UpdatePartition
+              - glue:GetPartition
+              - glue:GetPartitions
+              - glue:BatchGetPartition
+            Resource: '*'    
+          -  
+            Effect: Allow
+            Action:
+              - s3:Get*
+              - s3:List*
+              - s3:AbortMultipartUpload
+              - s3:CreateBucket
+              - s3:PutObject
+            Resource: arn:aws:s3:::*
+          -
+            Effect: Allow
+            Action: cloudwatch:*
+            Resource: '*'
+      Roles:
+        - !Ref RedshiftAccessRole  
+        - !Ref EC2AccessRole
+      Users:
+        - !Ref ProgrammaticUser
+
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.16.0.0/16
+      InstanceTenancy: default
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'false'
+
+  Subnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 172.16.0.0/24
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Name
+          Value: Subnet 1 - Public
+
+  Subnet2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 172.16.1.0/24
+      VpcId: !Ref VPC
+      MapPublicIpOnLaunch: True
+      Tags:
+        - Key: Name
+          Value: Subnet 2 - Public
+
+  Subnet3:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 172.16.2.0/24
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Subnet 3 - Private
+
+  Subnet4:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      CidrBlock: 172.16.3.0/24
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Subnet 4 - Private
+
+  NetworkAcl:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref VPC
+
+  InboundNetworkAclEntry:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'False'
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: !Ref NetworkAcl
+
+  OutboundNetworkAclEntry:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      CidrBlock: 0.0.0.0/0
+      Egress: 'True'
+      Protocol: '-1'
+      RuleAction: allow
+      RuleNumber: '100'
+      NetworkAclId: !Ref NetworkAcl
+
+  NetworkAclSubnet1:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref Subnet1
+
+  NetworkAclSubnet2:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref Subnet2
+
+  NetworkAclSubnet3:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref Subnet3
+
+  NetworkAclSubnet4:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref NetworkAcl
+      SubnetId: !Ref Subnet4
+
+  DMZSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: DMZSecurityGroup
+      GroupDescription: Allow RDP to Jump Box from my IP
+      VpcId: !Ref VPC
+      SecurityGroupEgress: 
+      - IpProtocol: '-1'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+      - IpProtocol: tcp
+        FromPort: '3389'
+        ToPort: '3389'
+        CidrIp: !Ref MyIPAddress
+      - IpProtocol: tcp
+        FromPort: '22'
+        ToPort: '22'
+        CidrIp: !Ref MyIPAddress
+
+  DataGatewaySecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    DependsOn: DMZSecurityGroup
+    Properties:
+      GroupName: DataGatewaySecurityGroup
+      GroupDescription: Allow RDP to Data Gateway from Jump Box
+      VpcId: !Ref VPC
+      SecurityGroupEgress: 
+      - IpProtocol: '-1'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+      - IpProtocol: tcp
+        FromPort: '3389'
+        ToPort: '3389'
+        SourceSecurityGroupId: !Ref DMZSecurityGroup
+
+  RedshiftSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupName: RedshiftSecurityGroup
+      GroupDescription: Security group for Redshift
+      VpcId: !Ref VPC
+      SecurityGroupEgress: 
+      - IpProtocol: '-1'
+        CidrIp: 0.0.0.0/0
+      SecurityGroupIngress: 
+      - IpProtocol: tcp
+        FromPort: '5439'
+        ToPort: '5439'
+        CidrIp: 172.16.0.0/24
+      - IpProtocol: tcp
+        FromPort: '5439'
+        ToPort: '5439'
+        CidrIp: 172.16.1.0/24
+      - IpProtocol: tcp
+        FromPort: '5439'
+        ToPort: '5439'
+        CidrIp: 172.16.2.0/24
+      - IpProtocol: tcp
+        FromPort: '5439'
+        ToPort: '5439'
+        CidrIp: 172.16.3.0/24
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+
+  InternetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  NatGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn: NatGatewayEIP
+    Properties:
+      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      SubnetId:
+        Ref: Subnet1
+
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Public Route Table
+
+  PublicRouteTableSubnet1:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref Subnet1
+
+  PublicRouteTableSubnet2:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref Subnet2
+
+  PrivateRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Private Route Table1
+
+  PrivateRouteTableSubnet3:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref Subnet3
+
+  PrivateRouteTableSubnet4:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: !Ref Subnet4
+
+  Route2InternetGateway:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref PublicRouteTable
+      GatewayId: !Ref InternetGateway
+    DependsOn: InternetGatewayAttachment
+
+  Route2NatGateway:
+    Type: 'AWS::EC2::Route'
+    DependsOn: NatGateway
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      RouteTableId: !Ref PrivateRouteTable
+      NatGatewayId: !Ref NatGateway
+
+  EC2InstanceProfile: 
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles: 
+        - !Ref EC2AccessRole
+
+  DataGeneratorInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref AmazonLinuxImageID
+      InstanceType: !Ref DataGeneratorInstanceType
+      KeyName: !Ref EC2KeyPair
+      SubnetId: !Ref Subnet1
+      SecurityGroupIds:
+        - !Ref DMZSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/xvda"
+          Ebs:
+            VolumeSize: 50
+      IamInstanceProfile: !Ref EC2InstanceProfile
+      Tags:
+        - Key: Name
+          Value: Data Generator
+
+  JumpBoxInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref WindowsServerImageID
+      InstanceType: !Ref JumpBoxInstanceType
+      KeyName: !Ref EC2KeyPair
+      SubnetId: !Ref Subnet1
+      SecurityGroupIds:
+        - !Ref DMZSecurityGroup
+      Tags:
+        - Key: Name
+          Value: Jump Box
+
+  DataGatewayInstance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      ImageId: !Ref WindowsServerImageID
+      InstanceType: !Ref DataGatewayInstanceType
+      KeyName: !Ref EC2KeyPair
+      SubnetId: !Ref Subnet3
+      SecurityGroupIds:
+        - !Ref DataGatewaySecurityGroup
+      Tags:
+        - Key: Name
+          Value: Data Gateway
+
+  RedshiftSubnetGroup:
+    Type: 'AWS::Redshift::ClusterSubnetGroup'
+    Properties:
+      Description: Redshift in private subnets
+      SubnetIds:
+        - !Ref Subnet4
+        - !Ref Subnet3
+
+  RedshiftCluster:
+    Type: 'AWS::Redshift::Cluster'
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      PubliclyAccessible: False
+      ClusterType: !Ref RedshiftClusterType
+      NumberOfNodes:
+        Fn::If:
+        - IsMultiNodeCluster
+        - !Ref RedshiftNumberOfNodes
+        - !Ref AWS::NoValue
+      NodeType: !Ref RedshiftNodeType
+      DBName: !Ref RedshiftDatabaseName
+      MasterUsername: !Ref RedshiftMasterUsername
+      MasterUserPassword: !Ref RedshiftMasterUserPassword
+      Port: !Ref RedshiftPortNumber
+      ClusterSubnetGroupName: !Ref RedshiftSubnetGroup
+      IamRoles: 
+        - !GetAtt RedshiftAccessRole.Arn
+      VpcSecurityGroupIds:
+        - !Ref RedshiftSecurityGroup
+
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Suspended
+
+Outputs:
+  IAMProgrammaticUserAccessKeyID:
+    Description: Access Key ID for programmatic access user
+    Value: !Ref ProgrammaticUserAccessKey
+  IAMProgrammaticUserAccessKeySecret:
+    Description: Access key secret for programmatic access user 
+    Value: !GetAtt ProgrammaticUserAccessKey.SecretAccessKey
+
+  DataGeneratorPublicIP: 
+    Description: Public IP address for data generator
+    Value: !GetAtt DataGeneratorInstance.PublicIp
+  JumpBoxPublicIP: 
+    Description: Public IP address for jump box
+    Value: !GetAtt JumpBoxInstance.PublicIp
+
+  RedshiftAccessRoleName:
+    Description: Name of IAM Role used by Reshift cluster
+    Value: !GetAtt RedshiftAccessRole.Arn
+  RedshiftClusterName:
+    Description: Name of Redshift cluster
+    Value: !Ref RedshiftCluster
+  RedshiftClusterEndpoint:
+    Description: Redshift cluster endpoint
+    Value: !Sub "${RedshiftCluster.Endpoint.Address}:${RedshiftCluster.Endpoint.Port}"
+  
+  S3BucketName:
+    Description: Name of S3 bucket
+    Value: !Ref S3Bucket
+
+

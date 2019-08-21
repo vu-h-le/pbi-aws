@@ -1,0 +1,24 @@
+sudo yum install -y make git gcc
+git clone https://github.com/gregrahn/tpch-kit
+cd tpch-kit/dbgen
+make OS=LINUX
+cd ~
+mkdir tpch-data
+export DSS_PATH=~/tpch-data
+cd tpch-kit/dbgen
+./dbgen -v -s 10        
+cd $DSS_PATH
+mkdir customer lineitem nation orders partsupp part region supplier
+mv customer.tbl customer
+mv lineitem.tbl lineitem
+mv nation.tbl nation
+mv orders.tbl orders
+mv partsupp.tbl partsupp
+mv part.tbl part
+mv region.tbl region
+mv supplier.tbl supplier
+
+cd ~
+aws s3 cp tpch-data s3://[S3BucketName]/tpch-data/ --recursive
+
+aws s3api put-object --bucket [S3BucketName] --key temp/

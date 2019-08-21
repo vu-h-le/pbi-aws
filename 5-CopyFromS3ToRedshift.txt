@@ -1,0 +1,39 @@
+COPY public.customer 
+FROM 's3://[S3BucketName]/tpch-data/customer/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.lineitem 
+FROM 's3://[S3BucketName]/tpch-data/lineitem/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.nation
+FROM 's3://[S3BucketName]/tpch-data/nation/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.orders
+FROM 's3://[S3BucketName]/tpch-data/orders/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.part
+FROM 's3://[S3BucketName]/tpch-data/part/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.partsupp
+FROM 's3://[S3BucketName]/tpch-data/partsupp/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.region
+FROM 's3://[S3BucketName]/tpch-data/region/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+COPY public.supplier
+FROM 's3://[S3BucketName]/tpch-data/supplier/'
+IAM_ROLE '[RedshiftAccessRoleName]';
+
+
+SELECT COUNT(*)
+FROM public.nation n 
+INNER JOIN public.customer c on n.n_nationkey = c.c_nationkey
+INNER JOIN public.orders o on c.c_custkey = o.o_custkey
+INNER JOIN public.lineitem li on o.o_orderkey = li.l_orderkey
+WHERE n.n_name = 'CANADA'

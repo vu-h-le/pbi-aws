@@ -1,0 +1,108 @@
+CREATE DATABASE tpch
+
+CREATE EXTERNAL TABLE tpch.customer(
+    c_custkey bigint, 
+    c_name string, 
+    c_address string, 
+    c_nationkey bigint, 
+    c_phone string, 
+    c_acctbal decimal, 
+    c_mktsegment string, 
+    c_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/customer/'
+
+CREATE EXTERNAL TABLE tpch.lineitem(
+    l_orderkey bigint, 
+    l_partkey bigint, 
+    l_suppkey bigint, 
+    l_linenumber int, 
+    l_quantity decimal, 
+    l_extendedprice decimal, 
+    l_discount decimal, 
+    l_tax decimal, 
+    l_returnflag char(1), 
+    l_linestatus char(1), 
+    l_shipdate date, 
+    l_commitdate date, 
+    l_receiptdate string, 
+    l_shipinstruct string,
+    l_shipmode string, 
+    l_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/lineitem/'
+
+CREATE EXTERNAL TABLE tpch.nation(
+    n_nationkey bigint, 
+    n_name string, 
+    n_regionkey bigint, 
+    n_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/nation/'
+
+CREATE EXTERNAL TABLE tpch.orders(
+    o_orderkey bigint, 
+    o_custkey bigint, 
+    o_orderstatus char(1), 
+    o_totalprice decimal, 
+    o_orderdate date, 
+    o_orderpriority string, 
+    o_clerk string, 
+    o_shippriority int, 
+    o_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/orders/'
+
+CREATE EXTERNAL TABLE tpch.part(
+    p_partkey bigint, 
+    p_name string, 
+    p_mfgr string, 
+    p_brand string, 
+    p_type string, 
+    p_size int, 
+    p_container string, 
+    p_retailprice decimal, 
+    p_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/part/'
+
+CREATE EXTERNAL TABLE tpch.partsupp(
+    ps_partkey bigint, 
+    ps_suppkey bigint, 
+    ps_availqty int, 
+    ps_supplycost decimal, 
+    ps_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/partsupp/'
+
+CREATE EXTERNAL TABLE IF NOT EXISTS tpch.region(
+    r_regionkey bigint, 
+    r_name string, 
+    r_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
+LOCATION 's3://[S3BucketName]/tpch-data/region/'
+
+CREATE EXTERNAL TABLE tpch.supplier(
+    s_suppkey bigint, 
+    s_name string, 
+    s_address string, 
+    s_nationkey bigint, 
+    s_phone string, 
+    s_acctbal decimal, 
+    s_comment string)
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
+LOCATION 's3://[S3BucketName]/tpch-data/supplier/'
+
+
+CREATE VIEW customer_orders AS
+SELECT c_custkey, o_orderkey, o_orderdate, o_orderstatus, o_totalprice
+FROM tpch.customer c 
+INNER JOIN tpch.orders o on c.c_custkey = o.o_custkey
+INNER JOIN tpch.lineitem li on o.o_orderkey = li.l_orderkey
+
+
+SELECT n_name, COUNT(c_custkey) numOfCustomers
+FROM nation n 
+INNER JOIN customer c on n.n_nationkey = c.c_nationkey
+GROUP BY n_name
+ORDER BY n_name

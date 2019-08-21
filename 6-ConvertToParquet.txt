@@ -1,0 +1,73 @@
+-- use tpch
+
+CREATE TABLE customer_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/customer/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM customer;
+
+
+CREATE TABLE lineitem_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/lineitem/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM lineitem;
+
+
+CREATE TABLE nation_parq
+WITH (
+external_location = '[S3BucketName]/tpch-data-parq/nation/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM nation;
+
+
+CREATE TABLE orders_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/orders/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM orders;
+
+
+CREATE TABLE part_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/part/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM part;
+
+
+CREATE TABLE partsupp_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/partsupp/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM partsupp;
+
+
+CREATE TABLE supplier_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/supplier/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM supplier;
+
+
+CREATE TABLE region_parq
+WITH (
+        external_location = '[S3BucketName]/tpch-data-parq/region/',
+        format = 'Parquet',
+        parquet_compression = 'SNAPPY')
+AS SELECT *
+FROM region;
+
