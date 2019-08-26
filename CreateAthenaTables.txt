@@ -10,7 +10,7 @@ CREATE EXTERNAL TABLE tpch.customer(
     c_mktsegment string, 
     c_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/customer/'
+LOCATION 's3://[S3BucketName]/tpch-data/customer/';
 
 CREATE EXTERNAL TABLE tpch.lineitem(
     l_orderkey bigint, 
@@ -30,7 +30,7 @@ CREATE EXTERNAL TABLE tpch.lineitem(
     l_shipmode string, 
     l_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/lineitem/'
+LOCATION 's3://[S3BucketName]/tpch-data/lineitem/';
 
 CREATE EXTERNAL TABLE tpch.nation(
     n_nationkey bigint, 
@@ -38,7 +38,7 @@ CREATE EXTERNAL TABLE tpch.nation(
     n_regionkey bigint, 
     n_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/nation/'
+LOCATION 's3://[S3BucketName]/tpch-data/nation/';
 
 CREATE EXTERNAL TABLE tpch.orders(
     o_orderkey bigint, 
@@ -51,7 +51,7 @@ CREATE EXTERNAL TABLE tpch.orders(
     o_shippriority int, 
     o_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/orders/'
+LOCATION 's3://[S3BucketName]/tpch-data/orders/';
 
 CREATE EXTERNAL TABLE tpch.part(
     p_partkey bigint, 
@@ -64,7 +64,7 @@ CREATE EXTERNAL TABLE tpch.part(
     p_retailprice decimal, 
     p_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/part/'
+LOCATION 's3://[S3BucketName]/tpch-data/part/';
 
 CREATE EXTERNAL TABLE tpch.partsupp(
     ps_partkey bigint, 
@@ -73,14 +73,14 @@ CREATE EXTERNAL TABLE tpch.partsupp(
     ps_supplycost decimal, 
     ps_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/partsupp/'
+LOCATION 's3://[S3BucketName]/tpch-data/partsupp/';
 
 CREATE EXTERNAL TABLE IF NOT EXISTS tpch.region(
     r_regionkey bigint, 
     r_name string, 
     r_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'
-LOCATION 's3://[S3BucketName]/tpch-data/region/'
+LOCATION 's3://[S3BucketName]/tpch-data/region/';
 
 CREATE EXTERNAL TABLE tpch.supplier(
     s_suppkey bigint, 
@@ -91,14 +91,14 @@ CREATE EXTERNAL TABLE tpch.supplier(
     s_acctbal decimal, 
     s_comment string)
 ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' 
-LOCATION 's3://[S3BucketName]/tpch-data/supplier/'
+LOCATION 's3://[S3BucketName]/tpch-data/supplier/';
 
 
 CREATE VIEW customer_orders AS
 SELECT c_custkey, o_orderkey, o_orderdate, o_orderstatus, o_totalprice
 FROM tpch.customer c 
 INNER JOIN tpch.orders o on c.c_custkey = o.o_custkey
-INNER JOIN tpch.lineitem li on o.o_orderkey = li.l_orderkey
+INNER JOIN tpch.lineitem li on o.o_orderkey = li.l_orderkey;
 
 
 SELECT n_name, COUNT(c_custkey) numOfCustomers
