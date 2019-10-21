@@ -1,34 +1,34 @@
 COPY public.customer 
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/customer/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/customer/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.nation
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/nation/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/nation/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.part
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/part/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/part/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.partsupp
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/partsupp/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/partsupp/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.region
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/region/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/region/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.supplier
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/supplier/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/supplier/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.orders
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/orders/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/orders/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 COPY public.lineitem 
-FROM 's3://pbi-aws-oregon-s3bucket-ct2hhrt6u0rd/tpch-data/lineitem/'
-IAM_ROLE 'arn:aws:iam::447038024007:role/pbi-aws-oregon-RedshiftAccessRole-1F2XYJNTFGZIT';
+FROM 's3://[S3BucketName]/tpch-data/lineitem/'
+IAM_ROLE '[RedshiftAccessRoleName]';
 
 SELECT COUNT(*) FROM public.customer; 
 SELECT COUNT(*) FROM public.nation;
