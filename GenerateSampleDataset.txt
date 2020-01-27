@@ -3,7 +3,7 @@
 
 # Step 0 - SSH into EC2 instance
 
-ssh -i [KeyPairFileName] ec2-user@[EC2IPAddress]
+ssh -i [KeyPairFileName] ec2-user@[DataGeneratorPublicIP]
 
 # Step 1 - download and compile the tpch-kit dbgen tool
 
