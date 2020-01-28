@@ -14,11 +14,11 @@ Parameters:
   AmazonLinuxImageID:
     Description: ID of Amazon Linux AMI that will be used for the Data Generator EC2 instance
     Type: String
-    Default: 'ami-00eb20669e0990cb4'
+    Default: 'ami-09d069a04349dc3cb'
   WindowsServerImageID:
     Description: ID of Windows Serever AMI that will be used for the Jumpbox and Data Gateway EC2 instances
     Type: String
-    Default: 'ami-08b11fc5bd2026dee'
+    Default: 'ami-09f2114fecbe506e2'
   DataGeneratorInstanceType:
     Description: EC2 instance type for data generator.
     Type: String
@@ -130,50 +130,6 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-          - 
-            Effect: Allow
-            Action: 
-              - athena:BatchGetQueryExecution
-              - athena:CancelQueryExecution
-              - athena:GetCatalogs
-              - athena:GetExecutionEngine
-              - athena:GetExecutionEngines
-              - athena:GetNamespace
-              - athena:GetNamespaces
-              - athena:GetQueryExecution
-              - athena:GetQueryExecutions
-              - athena:GetQueryResults
-              - athena:GetQueryResultsStream
-              - athena:GetTable
-              - athena:GetTables
-              - athena:ListQueryExecutions
-              - athena:RunQuery
-              - athena:StartQueryExecution
-              - athena:StopQueryExecution
-            Resource: '*'
-          -
-            Effect: Allow
-            Action:
-              - glue:CreateDatabase
-              - glue:DeleteDatabase
-              - glue:GetDatabase
-              - glue:GetDatabases
-              - glue:UpdateDatabase
-              - glue:CreateTable
-              - glue:DeleteTable
-              - glue:BatchDeleteTable
-              - glue:UpdateTable
-              - glue:GetTable
-              - glue:GetTables
-              - glue:BatchCreatePartition
-              - glue:CreatePartition
-              - glue:DeletePartition
-              - glue:BatchDeletePartition
-              - glue:UpdatePartition
-              - glue:GetPartition
-              - glue:GetPartitions
-              - glue:BatchGetPartition
-            Resource: '*'    
           -  
             Effect: Allow
             Action:
@@ -183,10 +139,6 @@ Resources:
               - s3:CreateBucket
               - s3:PutObject
             Resource: arn:aws:s3:::*
-          -
-            Effect: Allow
-            Action: cloudwatch:*
-            Resource: '*'
       Roles:
         - !Ref RedshiftAccessRole  
         - !Ref EC2AccessRole
