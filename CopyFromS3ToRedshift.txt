@@ -37,7 +37,7 @@ SELECT COUNT(*) FROM public.partsupp;
 SELECT COUNT(*) FROM public.region;
 SELECT COUNT(*) FROM public.supplier;
 SELECT COUNT(*) FROM public.orders;
-SELECT COUNT(*) FROM public.lineitems;
+SELECT COUNT(*) FROM public.lineitem;
 
 SELECT n_name, COUNT(c_custkey) numOfCustomers
 FROM nation n 
