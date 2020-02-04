@@ -1,34 +1,34 @@
 COPY public.customer 
 FROM 's3://[S3BucketName]/tpch-data/customer/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.nation
 FROM 's3://[S3BucketName]/tpch-data/nation/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.part
 FROM 's3://[S3BucketName]/tpch-data/part/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.partsupp
 FROM 's3://[S3BucketName]/tpch-data/partsupp/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.region
 FROM 's3://[S3BucketName]/tpch-data/region/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.supplier
 FROM 's3://[S3BucketName]/tpch-data/supplier/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.orders
 FROM 's3://[S3BucketName]/tpch-data/orders/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 COPY public.lineitem 
 FROM 's3://[S3BucketName]/tpch-data/lineitem/'
-IAM_ROLE '[RedshiftAccessRoleName]';
+IAM_ROLE 'arn:aws:iam::[YourAccountID]:role/[RedshiftAccessRoleName]';
 
 SELECT COUNT(*) FROM public.customer; 
 SELECT COUNT(*) FROM public.nation;
