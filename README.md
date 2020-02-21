@@ -1,2 +1,2 @@
 # pbi-aws
-Power BI frontend with AWS backend
+Microsoft Power BI frontend with Amazon Redshift backend.
