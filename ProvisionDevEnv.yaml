@@ -34,7 +34,6 @@ Parameters:
   EC2KeyPair:
     Description: Key pair used to connect to EC2 instances
     Type: String
-    Default: 'MyUSEast1KeyPair'
   RedshiftDatabaseName:
     Description: The name of the first database to be created when the cluster is
       created
